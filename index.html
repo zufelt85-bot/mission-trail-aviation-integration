@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Mission Trail: Aviation Integration</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:Arial,sans-serif;
+  background:#101820;
+  color:#f5f5f5;
+}
+header{
+  background:#1f2937;
+  padding:16px;
+  text-align:center;
+  border-bottom:3px solid #38bdf8;
+}
+header h1{margin:0;font-size:24px}
+header p{margin:6px 0 0;color:#cbd5e1}
+
+.container{
+  max-width:1100px;
+  margin:auto;
+  padding:16px;
+}
+
+.card{
+  background:#1e293b;
+  border:2px solid #334155;
+  border-radius:14px;
+  padding:16px;
+  margin-bottom:16px;
+  box-shadow:0 6px 18px rgba(0,0,0,.25);
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+  gap:12px;
+}
+
+.stat{
+  background:#0f172a;
+  border:1px solid #475569;
+  padding:12px;
+  border-radius:10px;
+  text-align:center;
+}
+.stat b{display:block;font-size:20px;color:#38bdf8}
+
+.progress-wrap{
+  background:#334155;
+  border-radius:999px;
+  overflow:hidden;
+  height:18px;
+}
+.progress{
+  height:100%;
+  background:#22c55e;
+  width:0%;
+}
+
+button{
+  width:100%;
+  padding:12px;
+  margin:6px 0;
+  border:0;
+  border-radius:10px;
+  background:#2563eb;
+  color:white;
+  font-weight:bold;
+  cursor:pointer;
+  font-size:15px;
+}
+button:hover{background:#1d4ed8}
+button.secondary{background:#475569}
+button.danger{background:#dc2626}
+button.good{background:#16a34a}
+
+.log{
+  max-height:250px;
+  overflow:auto;
+  background:#020617;
+  padding:12px;
+  border-radius:10px;
+  font-size:14px;
+  line-height:1.4;
+}
+
+.character{
+  border-left:5px solid #38bdf8;
+  padding-left:10px;
+  margin-bottom:10px;
+}
+
+.hidden{display:none}
+
+.bad{color:#f87171}
+.goodText{color:#4ade80}
+.warn{color:#facc15}
+
+.footer{
+  text-align:center;
+  font-size:12px;
+  color:#94a3b8;
+  padding:20px;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <h1>Mission Trail: Aviation Integration</h1>
+  <p>Oregon Trail style work survival game</p>
+</header>
+
+<div class="container">
+
+  <div id="startScreen" class="card">
+    <h2>Welcome to Mission Trail</h2>
+    <p>
+      You are the Lead Integration Technician. Your mission is to survive the fiscal year,
+      complete aircraft modernization projects, manage resources, and keep the team moving.
+    </p>
+    <button onclick="startGame()">Start Mission</button>
+  </div>
+
+  <div id="gameScreen" class="hidden">
+
+    <div class="card">
+      <h2>Month <span id="month">1</span> of 12</h2>
+      <div class="grid">
+        <div class="stat">Budget<b id="budget">$100000</b></div>
+        <div class="stat">Labor Hours<b id="labor">1000</b></div>
+        <div class="stat">Parts<b id="parts">100</b></div>
+        <div class="stat">Morale<b id="morale">100</b></div>
+        <div class="stat">Reputation<b id="reputation">50</b></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Mission Progress</h2>
+
+      <p>UHLE <span id="uhleText">0%</span></p>
+      <div class="progress-wrap"><div id="uhleBar" class="progress"></div></div>
+
+      <p>AHLE <span id="ahleText">0%</span></p>
+      <div class="progress-wrap"><div id="ahleBar" class="progress"></div></div>
+
+      <p>A2GC <span id="a2gcText">0%</span></p>
+      <div class="progress-wrap"><div id="a2gcBar" class="progress"></div></div>
+    </div>
+
+    <div class="card">
+      <h2>Your Team</h2>
+
+      <div class="character"><b>Dion</b> — Electrical Technician SME<br>Ability: Finds wiring and connector problems.</div>
+      <div class="character"><b>Dan</b> — Electrical Engineering SME<br>Ability: Resolves engineering conflicts.</div>
+      <div class="character"><b>Jacob</b> — Designer Lead<br>Ability: Fixes drawing/design package issues.</div>
+      <div class="character"><b>George</b> — Team Lead<br>Ability: Restores morale and manpower focus.</div>
+      <div class="character"><b>Justin</b> — Store/Supply<br>Ability: Orders parts and finds hard-to-find parts.</div>
+    </div>
+
+    <div class="card" id="actionCard">
+      <h2>Choose This Month's Focus</h2>
+      <button onclick="workMission('uhle')">Work UHLE</button>
+      <button onclick="workMission('ahle')">Work AHLE</button>
+      <button onclick="workMission('a2gc')">Work A2GC</button>
+      <button class="secondary" onclick="training()">Training Day</button>
+      <button class="secondary" onclick="inventory()">Inventory / Parts Check</button>
+    </div>
+
+    <div class="card hidden" id="eventCard">
+      <h2 id="eventTitle"></h2>
+      <p id="eventText"></p>
+      <div id="eventChoices"></div>
+    </div>
+
+    <div class="card">
+      <h2>Mission Log</h2>
+      <div id="log" class="log"></div>
+    </div>
+
+  </div>
+
+  <div id="endScreen" class="card hidden">
+    <h2 id="endTitle"></h2>
+    <p id="endText"></p>
+    <button onclick="location.reload()">Play Again</button>
+  </div>
+
+</div>
+
+<div class="footer">
+  Mission Trail V1
+</div>
+
+<script>
+let game = {
+  month: 1,
+  budget: 100000,
+  labor: 1000,
+  parts: 100,
+  morale: 100,
+  reputation: 50,
+  progress: {
+    uhle: 0,
+    ahle: 0,
+    a2gc: 0
+  }
+};
+
+function startGame(){
+  document.getElementById("startScreen").classList.add("hidden");
+  document.getElementById("gameScreen").classList.remove("hidden");
+  log("Fiscal year started. Aircraft are waiting. Leadership is watching.");
+  updateUI();
+}
+
+function updateUI(){
+  document.getElementById("month").textContent = game.month;
+  document.getElementById("budget").textContent = "$" + game.budget;
+  document.getElementById("labor").textContent = game.labor;
+  document.getElementById("parts").textContent = game.parts;
+  document.getElementById("morale").textContent = game.morale;
+  document.getElementById("reputation").textContent = game.reputation;
+
+  updateBar("uhle");
+  updateBar("ahle");
+  updateBar("a2gc");
+
+  checkEnd();
+}
+
+function updateBar(mission){
+  let value = game.progress[mission];
+  document.getElementById(mission+"Bar").style.width = value + "%";
+  document.getElementById(mission+"Text").textContent = value + "%";
+}
+
+function log(message){
+  const box = document.getElementById("log");
+  box.innerHTML = "• " + message + "<br>" + box.innerHTML;
+}
+
+function workMission(mission){
+  let names = {
+    uhle: "UHLE",
+    ahle: "AHLE",
+    a2gc: "A2GC"
+  };
+
+  let gain = rand(10,20);
+  game.progress[mission] = Math.min(100, game.progress[mission] + gain);
+  game.labor -= rand(45,80);
+  game.parts -= rand(6,14);
+  game.budget -= rand(3000,9000);
+  game.morale -= rand(2,8);
+
+  log(names[mission] + " moved forward +" + gain + "%.");
+
+  updateUI();
+
+  if(Math.random() < .75){
+    triggerEvent();
+  } else {
+    nextMonth();
+  }
+}
+
+function training(){
+  game.labor -= 30;
+  game.budget -= 2000;
+  game.morale += 8;
+  game.reputation += 3;
+  clamp();
+  log("Training completed. Team confidence improved.");
+  nextMonth();
+}
+
+function inventory(){
+  game.labor -= 20;
+  game.budget -= 3000;
+  game.parts += rand(15,30);
+  game.reputation += 2;
+  clamp();
+  log("Inventory cleaned up. Extra parts found and ordered.");
+  nextMonth();
+}
+
+const events = [
+  {
+    title:"Connector Shortage",
+    text:"A critical connector is backordered and the aircraft cannot move forward.",
+    choices:[
+      {
+        text:"Call Justin",
+        action:function(){
+          if(Math.random() < .8){
+            game.parts += 20;
+            game.reputation += 5;
+            log("Justin found the part. Mission saved.");
+          } else {
+            game.reputation -= 5;
+            game.month += 1;
+            log("Justin searched everywhere, but no part was found in time.");
+          }
+          endEvent();
+        }
+      },
+      {
+        text:"Wait for shipment",
+        action:function(){
+          game.month += 1;
+          game.morale -= 8;
+          log("Shipment delayed the schedule by one month.");
+          endEvent();
+        }
+      },
+      {
+        text:"Borrow from another project",
+        action:function(){
+          game.parts += 10;
+          game.reputation -= 6;
+          log("Borrowed parts helped today but hurt another project.");
+          endEvent();
+        }
+      }
+    ]
+  },
+  {
+    title:"Failed Continuity Test",
+    text:"The system fails continuity testing right before inspection.",
+    choices:[
+      {
+        text:"Ask Dion",
+        action:function(){
+          game.labor -= 25;
+          game.reputation += 6;
+          log("Dion found the wiring issue fast.");
+          endEvent();
+        }
+      },
+      {
+        text:"Rewire the assembly",
+        action:function(){
+          game.labor -= 80;
+          game.parts -= 10;
+          log("Assembly rewired. Expensive, but safe.");
+          endEvent();
+        }
+      },
+      {
+        text:"Push forward anyway",
+        action:function(){
+          game.reputation -= 15;
+          game.morale -= 10;
+          log("QA caught the issue. Reputation took a hit.");
+          endEvent();
+        }
+      }
+    ]
+  },
+  {
+    title:"Drawing Conflict",
+    text:"The aircraft configuration does not match the released drawing.",
+    choices:[
+      {
+        text:"Consult Dan",
+        action:function(){
+          game.labor -= 30;
+          game.reputation += 5;
+          log("Dan clarified the engineering intent.");
+          endEvent();
+        }
+      },
+      {
+        text:"Ask Jacob for design review",
+        action:function(){
+          game.labor -= 35;
+          game.budget -= 2000;
+          game.reputation += 8;
+          log("Jacob corrected the design package.");
+          endEvent();
+        }
+      },
+      {
+        text:"Continue anyway",
+        action:function(){
+          game.reputation -= 18;
+          log("Bad call. The drawing issue caused rework.");
+          endEvent();
+        }
+      }
+    ]
+  },
+  {
+    title:"Team Burnout",
+    text:"The team is tired from overtime and schedule pressure.",
+    choices:[
+      {
+        text:"George team reset",
+        action:function(){
+          game.morale += 18;
+          game.labor -= 10;
+          log("George reset priorities and improved morale.");
+          endEvent();
+        }
+      },
+      {
+        text:"Push more overtime",
+        action:function(){
+          game.labor += 60;
+          game.morale -= 20;
+          game.reputation += 3;
+          log("Overtime gained hours but hurt morale.");
+          endEvent();
+        }
+      },
+      {
+        text:"Give recovery day",
+        action:function(){
+          game.morale += 25;
+          game.month += 1;
+          log("Team recovered, but schedule slipped.");
+          endEvent();
+        }
+      }
+    ]
+  },
+  {
+    title:"Leadership Demo",
+    text:"Leadership wants an aircraft ready for a demo sooner than expected.",
+    choices:[
+      {
+        text:"Prepare full demo package",
+        action:function(){
+          game.labor -= 70;
+          game.budget -= 5000;
+          game.reputation += 15;
+          log("Demo succeeded. Leadership is impressed.");
+          endEvent();
+        }
+      },
+      {
+        text:"Rush minimum setup",
+        action:function(){
+          if(Math.random() < .5){
+            game.reputation += 8;
+            log("The rushed demo worked somehow.");
+          } else {
+            game.reputation -= 20;
+            log("The rushed demo failed in front of leadership.");
+          }
+          endEvent();
+        }
+      },
+      {
+        text:"Tell them schedule risk is too high",
+        action:function(){
+          game.reputation -= 5;
+          game.morale += 5;
+          log("Leadership was not happy, but the team respected the call.");
+          endEvent();
+        }
+      }
+    ]
+  }
+];
+
+function triggerEvent(){
+  document.getElementById("actionCard").classList.add("hidden");
+  document.getElementById("eventCard").classList.remove("hidden");
+
+  let event = events[rand(0, events.length-1)];
+  document.getElementById("eventTitle").textContent = event.title;
+  document.getElementById("eventText").textContent = event.text;
+
+  let choices = document.getElementById("eventChoices");
+  choices.innerHTML = "";
+
+  event.choices.forEach(choice => {
+    let btn = document.createElement("button");
+    btn.textContent = choice.text;
+    btn.onclick = choice.action;
+    choices.appendChild(btn);
+  });
+}
+
+function endEvent(){
+  clamp();
+  updateUI();
+  document.getElementById("eventCard").classList.add("hidden");
+  document.getElementById("actionCard").classList.remove("hidden");
+  nextMonth();
+}
+
+function nextMonth(){
+  clamp();
+
+  if(game.month >= 12){
+    game.month = 12;
+    updateUI();
+    checkEnd(true);
+    return;
+  }
+
+  game.month++;
+  updateUI();
+}
+
+function checkEnd(forceEnd=false){
+  let won =
+    game.progress.uhle >= 100 &&
+    game.progress.ahle >= 100 &&
+    game.progress.a2gc >= 100;
+
+  if(won){
+    endGame(true, "Mission Complete", "UHLE, AHLE, and A2GC were delivered before the fiscal year ended.");
+    return;
+  }
+
+  if(game.budget <= 0){
+    endGame(false, "Mission Failed", "Budget hit zero. The program ran out of money.");
+  } else if(game.labor <= 0){
+    endGame(false, "Mission Failed", "Labor hours hit zero. The team ran out of available time.");
+  } else if(game.parts <= 0){
+    endGame(false, "Mission Failed", "Parts inventory hit zero. You were defeated by missing hardware.");
+  } else if(game.morale <= 0){
+    endGame(false, "Mission Failed", "Team morale hit zero. Burnout took over.");
+  } else if(game.reputation <= 0){
+    endGame(false, "Mission Failed", "Reputation hit zero. Leadership lost confidence.");
+  } else if(forceEnd){
+    endGame(false, "Fiscal Year Ended", "Time ran out before all aircraft projects were completed.");
+  }
+}
+
+function endGame(win,title,text){
+  document.getElementById("gameScreen").classList.add("hidden");
+  document.getElementById("endScreen").classList.remove("hidden");
+  document.getElementById("endTitle").textContent = title;
+  document.getElementById("endText").textContent = text;
+}
+
+function clamp(){
+  game.budget = Math.max(0, game.budget);
+  game.labor = Math.max(0, game.labor);
+  game.parts = Math.max(0, game.parts);
+  game.morale = Math.max(0, Math.min(100, game.morale));
+  game.reputation = Math.max(0, Math.min(100, game.reputation));
+
+  game.progress.uhle = Math.min(100, game.progress.uhle);
+  game.progress.ahle = Math.min(100, game.progress.ahle);
+  game.progress.a2gc = Math.min(100, game.progress.a2gc);
+}
+
+function rand(min,max){
+  return Math.floor(Math.random() * (max-min+1)) + min;
+}
+</script>
+
+</body>
+</html>
