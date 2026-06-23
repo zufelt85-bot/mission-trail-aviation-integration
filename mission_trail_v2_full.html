@@ -1,0 +1,1345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Mission Trail: Aviation Integration V2</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<style>
+:root{
+  --bg:#050705;
+  --panel:#070b07;
+  --panel2:#10170f;
+  --border:#5c5a2d;
+  --gold:#e2b64f;
+  --green:#76d15d;
+  --blue:#4aa3d8;
+  --purple:#bd61d6;
+  --text:#f2f1df;
+  --muted:#b9b48d;
+  --danger:#e0614f;
+}
+
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  background:#020302;
+  color:var(--text);
+  font-family:"Courier New",monospace;
+  overflow-x:hidden;
+}
+
+.game{
+  max-width:1280px;
+  margin:0 auto;
+  min-height:100vh;
+  background:
+    radial-gradient(circle at top,#172010 0%,#020302 50%,#000 100%);
+  border-left:2px solid #1c1b0e;
+  border-right:2px solid #1c1b0e;
+}
+
+.header{
+  display:grid;
+  grid-template-columns:1fr auto;
+  gap:14px;
+  align-items:center;
+  padding:14px 18px;
+  background:linear-gradient(#111308,#030403);
+  border:3px solid var(--border);
+  box-shadow:0 0 16px rgba(226,182,79,.25) inset;
+}
+
+.title{
+  display:flex;
+  gap:14px;
+  align-items:center;
+}
+
+.star{
+  width:58px;
+  height:58px;
+  clip-path:polygon(50% 0%,61% 34%,98% 34%,68% 55%,79% 91%,50% 70%,21% 91%,32% 55%,2% 34%,39% 34%);
+  background:linear-gradient(135deg,#ffe694,#9c6e16);
+}
+
+h1{
+  margin:0;
+  font-size:clamp(25px,4vw,48px);
+  letter-spacing:2px;
+  text-transform:uppercase;
+  color:#eee;
+  text-shadow:3px 3px 0 #000,0 0 8px #7b7440;
+}
+
+.subtitle{
+  color:var(--gold);
+  font-size:clamp(13px,2vw,19px);
+  text-transform:uppercase;
+  letter-spacing:2px;
+}
+
+.monthbox{
+  border:2px solid var(--border);
+  padding:14px 18px;
+  font-size:clamp(18px,2.5vw,28px);
+  color:#fff;
+  white-space:nowrap;
+  background:#060806;
+}
+
+.resourcebar{
+  display:grid;
+  grid-template-columns:repeat(5,1fr);
+  border-left:3px solid var(--border);
+  border-right:3px solid var(--border);
+  border-bottom:3px solid var(--border);
+  background:#050605;
+}
+
+.resource{
+  display:grid;
+  grid-template-columns:auto 1fr;
+  gap:10px;
+  align-items:center;
+  padding:12px 16px;
+  border-right:2px solid #313014;
+  min-height:75px;
+}
+
+.resource:last-child{border-right:none}
+
+.icon{
+  font-size:38px;
+  color:var(--gold);
+  filter:drop-shadow(2px 2px #000);
+}
+
+.resource label{
+  display:block;
+  color:#fff;
+  font-weight:bold;
+  font-size:17px;
+  text-transform:uppercase;
+}
+
+.resource b{
+  display:block;
+  font-size:24px;
+  color:var(--green);
+}
+
+.mainstage{
+  position:relative;
+  min-height:610px;
+  border-left:3px solid var(--border);
+  border-right:3px solid var(--border);
+  overflow:hidden;
+  background:#111;
+}
+
+.hangar-bg{
+  position:absolute;
+  inset:0;
+  background:
+    linear-gradient(rgba(0,0,0,.1),rgba(0,0,0,.1)),
+    repeating-linear-gradient(90deg,transparent 0 120px,rgba(255,255,255,.06) 120px 124px),
+    linear-gradient(180deg,#4b4d43 0%,#2e302b 42%,#555043 43%,#4a4539 100%);
+}
+
+.ceiling{
+  position:absolute;
+  top:0;
+  left:0;
+  width:100%;
+  height:185px;
+  background:
+    repeating-linear-gradient(135deg,rgba(255,255,255,.08) 0 2px,transparent 2px 55px),
+    linear-gradient(#2a2c25,#3b3d34);
+  clip-path:polygon(0 0,100% 0,100% 70%,0 100%);
+  border-bottom:4px solid #686752;
+}
+
+.lights{
+  position:absolute;
+  top:35px;
+  left:10%;
+  right:10%;
+  display:flex;
+  justify-content:space-around;
+}
+
+.light{
+  width:80px;
+  height:18px;
+  background:#fff8cc;
+  box-shadow:0 0 30px #fff5a3;
+  transform:skewX(-15deg);
+  opacity:.9;
+}
+
+.wall-lines{
+  position:absolute;
+  top:110px;
+  left:0;
+  right:0;
+  height:230px;
+  background:
+    repeating-linear-gradient(90deg,rgba(0,0,0,.0) 0 105px,rgba(0,0,0,.35) 105px 110px),
+    repeating-linear-gradient(0deg,rgba(255,255,255,.08) 0 45px,transparent 45px 48px);
+  opacity:.8;
+}
+
+.flag{
+  position:absolute;
+  top:110px;
+  right:145px;
+  width:230px;
+  height:135px;
+  background:
+    linear-gradient(#b52929 0 7.69%,#eee 7.69% 15.38%,#b52929 15.38% 23.07%,#eee 23.07% 30.76%,#b52929 30.76% 38.45%,#eee 38.45% 46.14%,#b52929 46.14% 53.83%,#eee 53.83% 61.52%,#b52929 61.52% 69.21%,#eee 69.21% 76.9%,#b52929 76.9% 84.59%,#eee 84.59% 92.28%,#b52929 92.28%);
+  opacity:.75;
+  border:2px solid rgba(255,255,255,.25);
+}
+
+.flag:before{
+  content:"";
+  position:absolute;
+  top:0;
+  left:0;
+  width:95px;
+  height:73px;
+  background:#20325f;
+}
+
+.floor{
+  position:absolute;
+  left:-80px;
+  right:-80px;
+  bottom:-20px;
+  height:285px;
+  background:
+    repeating-linear-gradient(90deg,transparent 0 150px,rgba(0,0,0,.28) 150px 154px),
+    repeating-linear-gradient(15deg,rgba(255,255,255,.06) 0 2px,transparent 2px 105px),
+    linear-gradient(#6c6556,#39362e);
+  transform:perspective(520px) rotateX(52deg);
+  transform-origin:bottom;
+}
+
+.yellow-line{
+  position:absolute;
+  bottom:120px;
+  left:0;
+  width:100%;
+  height:7px;
+  background:#dbbd4d;
+  transform:skewY(-7deg);
+  opacity:.75;
+}
+
+/* left current project panel */
+.current-project{
+  position:absolute;
+  top:22px;
+  left:14px;
+  width:235px;
+  background:rgba(2,5,2,.88);
+  border:3px solid var(--border);
+  padding:14px;
+  z-index:5;
+}
+
+.current-project h2,.quick h2{
+  color:var(--gold);
+  margin:0 0 12px;
+  font-size:20px;
+}
+
+.project-name{
+  color:var(--green);
+  font-size:34px;
+  font-weight:bold;
+}
+
+.small-label{
+  color:var(--gold);
+  text-transform:uppercase;
+  margin-top:16px;
+}
+
+.big-num{
+  font-size:28px;
+  color:var(--green);
+}
+
+.bar{
+  height:24px;
+  border:1px solid #9c9570;
+  background:#151511;
+  overflow:hidden;
+  margin:6px 0 10px;
+}
+
+.fill{
+  height:100%;
+  background:linear-gradient(90deg,#5ea943,#9ad86c);
+  width:0%;
+}
+
+/* aircraft css drawing */
+.heli{
+  position:absolute;
+  left:245px;
+  top:185px;
+  width:680px;
+  height:260px;
+  z-index:3;
+  transform:scale(1);
+  filter:drop-shadow(18px 28px 14px rgba(0,0,0,.65));
+}
+
+.rotor{
+  position:absolute;
+  top:5px;
+  left:35px;
+  width:610px;
+  height:8px;
+  background:#111;
+  border-radius:50%;
+  box-shadow:0 2px 0 #4b4b40;
+}
+
+.rotor:before{
+  content:"";
+  position:absolute;
+  top:-9px;
+  left:285px;
+  width:36px;
+  height:28px;
+  background:#171914;
+  border-radius:8px;
+}
+
+.body{
+  position:absolute;
+  left:120px;
+  top:92px;
+  width:390px;
+  height:105px;
+  background:linear-gradient(160deg,#25291f,#070806 70%);
+  border:4px solid #0e100d;
+  border-radius:42% 48% 38% 34%;
+  box-shadow:inset 20px -18px 18px rgba(255,255,255,.08);
+}
+
+.nose{
+  position:absolute;
+  left:465px;
+  top:102px;
+  width:115px;
+  height:85px;
+  background:linear-gradient(160deg,#262b24,#050605);
+  border:4px solid #0e100d;
+  border-radius:30% 60% 45% 35%;
+}
+
+.tail{
+  position:absolute;
+  left:5px;
+  top:118px;
+  width:170px;
+  height:30px;
+  background:linear-gradient(#20251c,#090a08);
+  border:3px solid #0b0d0a;
+  transform:skewY(-7deg);
+}
+
+.tailfin{
+  position:absolute;
+  left:15px;
+  top:75px;
+  width:52px;
+  height:80px;
+  background:#161a14;
+  border:3px solid #0b0d0a;
+  clip-path:polygon(25% 0,100% 68%,55% 100%,0 25%);
+}
+
+.tailrotor{
+  position:absolute;
+  left:0;
+  top:70px;
+  width:70px;
+  height:70px;
+  border:5px solid #111;
+  border-radius:50%;
+}
+.tailrotor:before,.tailrotor:after{
+  content:"";
+  position:absolute;
+  background:#111;
+  left:30px;
+  top:0;
+  width:8px;
+  height:65px;
+}
+.tailrotor:after{
+  transform:rotate(90deg);
+}
+
+.engine{
+  position:absolute;
+  left:270px;
+  top:70px;
+  width:110px;
+  height:48px;
+  background:#12150f;
+  border:4px solid #090a07;
+  border-radius:25px;
+}
+
+.engine2{
+  left:355px;
+}
+
+.window{
+  position:absolute;
+  background:linear-gradient(135deg,#26394a,#0b1118);
+  border:3px solid #050806;
+  box-shadow:inset 4px 4px 5px rgba(255,255,255,.2);
+}
+
+.w1{left:500px;top:113px;width:50px;height:42px;border-radius:8px 28px 8px 8px}
+.w2{left:430px;top:118px;width:45px;height:42px}
+.w3{left:360px;top:120px;width:45px;height:42px}
+.w4{left:292px;top:120px;width:45px;height:42px}
+
+.doorline{
+  position:absolute;
+  left:345px;
+  top:105px;
+  width:2px;
+  height:92px;
+  background:#010;
+  opacity:.8;
+}
+
+.landing{
+  position:absolute;
+  left:170px;
+  top:205px;
+  width:380px;
+  height:20px;
+  border-bottom:7px solid #080907;
+  border-left:7px solid #080907;
+  border-right:7px solid #080907;
+  border-radius:0 0 60px 60px;
+}
+
+.wheel{
+  position:absolute;
+  width:42px;
+  height:42px;
+  background:#090909;
+  border:6px solid #1c1c1b;
+  border-radius:50%;
+  top:190px;
+}
+.wh1{left:230px}
+.wh2{left:495px}
+
+.cable{
+  position:absolute;
+  height:3px;
+  background:#151515;
+  transform-origin:left;
+}
+.c1{left:495px;top:205px;width:170px;transform:rotate(20deg)}
+.c2{left:320px;top:205px;width:160px;transform:rotate(145deg)}
+
+/* people and objects */
+.technician{
+  position:absolute;
+  width:70px;
+  height:145px;
+  z-index:4;
+}
+
+.person{
+  position:relative;
+  width:70px;
+  height:145px;
+}
+.head{
+  position:absolute;
+  top:0;
+  left:24px;
+  width:24px;
+  height:26px;
+  background:#b27a54;
+  border-radius:50%;
+  border:2px solid #42210f;
+}
+.cap{
+  position:absolute;
+  top:-4px;
+  left:18px;
+  width:38px;
+  height:13px;
+  background:#5d5a35;
+  border-radius:50% 50% 15% 15%;
+  border:2px solid #252313;
+}
+.torso{
+  position:absolute;
+  top:28px;
+  left:15px;
+  width:42px;
+  height:58px;
+  background:
+    radial-gradient(circle at 8px 8px,#8c8b48 0 4px,transparent 4px),
+    radial-gradient(circle at 30px 20px,#3f4f29 0 5px,transparent 5px),
+    linear-gradient(135deg,#746f3f,#384326);
+  border:2px solid #16190d;
+  border-radius:8px;
+}
+.arm{
+  position:absolute;
+  top:36px;
+  width:16px;
+  height:54px;
+  background:#4d5730;
+  border:2px solid #16190d;
+  border-radius:9px;
+}
+.arm.left{left:4px;transform:rotate(15deg)}
+.arm.right{right:4px;transform:rotate(-22deg)}
+.leg{
+  position:absolute;
+  top:84px;
+  width:18px;
+  height:55px;
+  background:#33391f;
+  border:2px solid #15170c;
+}
+.leg.left{left:18px}
+.leg.right{right:17px}
+.boot{
+  position:absolute;
+  top:132px;
+  width:24px;
+  height:12px;
+  background:#1f1a10;
+  border-radius:8px;
+}
+.boot.left{left:12px}
+.boot.right{right:10px}
+
+.t1{left:95px;bottom:45px;transform:scale(1.05)}
+.t2{left:470px;bottom:72px;transform:scale(.95)}
+.t3{right:130px;bottom:76px;transform:scale(.75) rotate(-8deg)}
+.t3 .person{transform:skewX(-8deg)}
+
+.workcart{
+  position:absolute;
+  left:90px;
+  bottom:35px;
+  width:145px;
+  height:95px;
+  background:#111;
+  border:4px solid #333;
+  z-index:3;
+}
+.workcart:before{
+  content:"";
+  position:absolute;
+  top:-56px;
+  left:20px;
+  width:104px;
+  height:58px;
+  background:#0a1419;
+  border:4px solid #2e4552;
+}
+.workcart:after{
+  content:"";
+  position:absolute;
+  bottom:-13px;
+  left:12px;
+  width:118px;
+  height:14px;
+  background:radial-gradient(circle,#090909 0 7px,transparent 8px) left/40px 14px repeat-x;
+}
+
+.worktable{
+  position:absolute;
+  left:390px;
+  bottom:55px;
+  width:230px;
+  height:78px;
+  background:#8b6b42;
+  border:4px solid #3a2814;
+  z-index:3;
+}
+.worktable:before{
+  content:"";
+  position:absolute;
+  left:20px;right:20px;top:18px;height:8px;
+  background:repeating-linear-gradient(90deg,#111 0 20px,#b51d1d 20px 24px,#111 24px 40px);
+}
+
+.crates{
+  position:absolute;
+  right:280px;
+  bottom:56px;
+  width:165px;
+  height:75px;
+  background:
+    linear-gradient(90deg,rgba(0,0,0,.25) 48%,transparent 48% 52%,rgba(0,0,0,.25) 52%),
+    linear-gradient(#4e4c32,#242817);
+  border:4px solid #17180e;
+  z-index:3;
+}
+
+.toolbox{
+  position:absolute;
+  right:35px;
+  bottom:55px;
+  width:125px;
+  height:180px;
+  background:
+    repeating-linear-gradient(0deg,#1b2831 0 24px,#101a20 24px 27px);
+  border:4px solid #41515c;
+  z-index:2;
+}
+
+.motto{
+  position:absolute;
+  right:315px;
+  top:235px;
+  padding:12px;
+  background:#111307;
+  color:var(--gold);
+  border:2px solid var(--border);
+  font-weight:bold;
+  z-index:4;
+}
+
+/* quick actions */
+.quick{
+  position:absolute;
+  top:22px;
+  right:14px;
+  width:220px;
+  background:rgba(2,5,2,.9);
+  border:3px solid var(--border);
+  padding:14px;
+  z-index:5;
+}
+.quick button{
+  width:100%;
+  margin:7px 0;
+  padding:16px 8px;
+  font-family:"Courier New",monospace;
+  font-weight:bold;
+  font-size:18px;
+  color:#fff;
+  border:2px solid #3d6a3d;
+  background:linear-gradient(#183a17,#0b240b);
+  cursor:pointer;
+}
+.quick button:hover{filter:brightness(1.25)}
+.quick .blue{background:linear-gradient(#0d263d,#071829);border-color:#2e5b7e}
+
+/* lower panels */
+.lower{
+  display:grid;
+  grid-template-columns:1.05fr 1.1fr .9fr;
+  gap:6px;
+  padding:6px;
+  border-left:3px solid var(--border);
+  border-right:3px solid var(--border);
+  background:#030403;
+}
+
+.panel{
+  background:rgba(2,5,2,.96);
+  border:3px solid var(--border);
+  min-height:280px;
+  padding:12px;
+}
+
+.panel h2{
+  margin:0 0 10px;
+  color:var(--gold);
+  text-align:center;
+  text-transform:uppercase;
+}
+
+.member{
+  display:grid;
+  grid-template-columns:76px 1fr auto;
+  gap:10px;
+  border-top:1px solid #39381c;
+  padding:8px 0;
+  align-items:center;
+}
+
+.portrait{
+  width:68px;
+  height:68px;
+  background:linear-gradient(#293220,#111);
+  border:2px solid #30351c;
+  position:relative;
+  overflow:hidden;
+}
+
+.portrait:before{
+  content:"";
+  position:absolute;
+  left:22px;top:9px;width:25px;height:27px;
+  border-radius:50%;
+  background:#b37b55;
+}
+.portrait:after{
+  content:"";
+  position:absolute;
+  left:13px;top:36px;width:43px;height:39px;
+  background:linear-gradient(135deg,#77713d,#303b25);
+  border-radius:10px 10px 0 0;
+}
+.portrait.cap:before{
+  box-shadow:0 -8px 0 0 #625e36;
+}
+.portrait.glasses:before{
+  box-shadow:0 -8px 0 #625e36;
+}
+.member-name{
+  color:var(--green);
+  font-weight:bold;
+  font-size:18px;
+}
+.member-role{
+  color:#fff;
+  font-size:14px;
+}
+.member-desc{
+  color:#cfcfc0;
+  font-size:13px;
+}
+.morale{
+  color:var(--green);
+  text-align:right;
+  font-size:22px;
+}
+.morale span{
+  display:block;
+  color:var(--green);
+  font-size:13px;
+}
+
+.mission-row{
+  display:grid;
+  grid-template-columns:115px 1fr auto;
+  gap:14px;
+  align-items:center;
+  border-top:1px solid #39381c;
+  padding:16px 0;
+}
+
+.thumb{
+  height:72px;
+  background:
+    radial-gradient(ellipse at 55% 48%,#171b14 0 26%,transparent 27%),
+    linear-gradient(#46524a,#222);
+  border:2px solid #2d331c;
+  position:relative;
+}
+.thumb:before{
+  content:"";
+  position:absolute;
+  left:8px;
+  top:34px;
+  width:92px;
+  height:4px;
+  background:#0b0d0a;
+}
+.thumb:after{
+  content:"";
+  position:absolute;
+  left:25px;
+  top:22px;
+  width:45px;
+  height:25px;
+  background:#11150f;
+  border-radius:50%;
+}
+.mission-title{
+  font-size:31px;
+  font-weight:bold;
+}
+.uhle{color:var(--green)}
+.ahle{color:var(--blue)}
+.a2gc{color:var(--purple)}
+.status{
+  color:#c7b98d;
+  font-size:15px;
+}
+.log{
+  height:315px;
+  overflow:auto;
+  white-space:pre-line;
+  color:#e9e7d6;
+  line-height:1.45;
+  padding:8px;
+  border-top:1px solid #39381c;
+}
+
+/* event */
+.event{
+  display:grid;
+  grid-template-columns:170px 1fr;
+  gap:22px;
+  padding:14px;
+  border:3px solid var(--border);
+  background:#020402;
+  margin:0 6px 6px;
+}
+
+.event-portrait{
+  width:150px;
+  height:175px;
+  background:linear-gradient(#20271b,#050605);
+  border:3px solid #202411;
+  position:relative;
+}
+.event-portrait:before{
+  content:"";
+  position:absolute;
+  left:47px;top:25px;width:55px;height:60px;
+  border-radius:50%;
+  background:#b67e58;
+  box-shadow:0 -16px 0 #615b34;
+}
+.event-portrait:after{
+  content:attr(data-name);
+  position:absolute;
+  left:0;right:0;bottom:8px;
+  text-align:center;
+  color:var(--green);
+  font-weight:bold;
+  font-size:22px;
+}
+
+.event h2{
+  margin:0 0 8px;
+  color:var(--gold);
+  text-align:center;
+}
+
+.event-text{
+  font-size:19px;
+  line-height:1.45;
+  margin-bottom:12px;
+}
+
+.choices{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:12px;
+}
+
+.choice{
+  padding:12px 8px;
+  border:2px solid #315637;
+  background:linear-gradient(#143a11,#071a08);
+  color:#fff;
+  font-family:"Courier New",monospace;
+  font-size:16px;
+  cursor:pointer;
+  min-height:72px;
+}
+.choice small{
+  display:block;
+  color:#c8c8b4;
+  margin-top:5px;
+}
+.choice.blue{
+  background:linear-gradient(#0c263d,#071725);
+  border-color:#2a587c;
+}
+
+.tip{
+  padding:10px 16px;
+  color:#f3cc5e;
+  border-left:3px solid var(--border);
+  border-right:3px solid var(--border);
+  border-bottom:3px solid var(--border);
+  background:#050605;
+}
+
+.start,.end{
+  max-width:780px;
+  margin:60px auto;
+  border:3px solid var(--border);
+  background:#070b07;
+  padding:30px;
+  text-align:center;
+  box-shadow:0 0 30px rgba(226,182,79,.25);
+}
+.start h2,.end h2{
+  color:var(--gold);
+  font-size:34px;
+}
+.start p,.end p{
+  font-size:18px;
+  line-height:1.5;
+}
+.start button,.end button{
+  padding:16px 20px;
+  background:linear-gradient(#183a17,#0b240b);
+  border:2px solid #4d8a42;
+  color:#fff;
+  font-size:20px;
+  font-family:"Courier New",monospace;
+  cursor:pointer;
+}
+
+.hidden{display:none!important}
+
+@media(max-width:920px){
+  .header{grid-template-columns:1fr}
+  .resourcebar{grid-template-columns:repeat(2,1fr)}
+  .resource:last-child{grid-column:span 2}
+  .mainstage{min-height:560px}
+  .heli{left:120px;top:220px;transform:scale(.72);transform-origin:left top}
+  .current-project{width:190px}
+  .quick{position:relative;right:auto;top:auto;width:auto;margin:10px;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .quick h2{grid-column:1/-1}
+  .lower{grid-template-columns:1fr}
+  .event{grid-template-columns:1fr}
+  .choices{grid-template-columns:1fr}
+  .event-portrait{display:none}
+}
+
+@media(max-width:600px){
+  h1{font-size:26px}
+  .subtitle{font-size:13px}
+  .resourcebar{grid-template-columns:1fr}
+  .resource:last-child{grid-column:auto}
+  .mainstage{min-height:520px}
+  .current-project{position:relative;top:auto;left:auto;margin:8px;width:auto}
+  .heli{left:20px;top:245px;transform:scale(.56);transform-origin:left top}
+  .flag{right:20px;top:130px;width:150px;height:88px}
+  .motto{display:none}
+  .t1{left:25px}
+  .t2{left:260px}
+  .t3{right:20px}
+}
+</style>
+</head>
+
+<body>
+<div class="game">
+
+  <section id="startScreen" class="start">
+    <h2>MISSION TRAIL: AVIATION INTEGRATION</h2>
+    <p>You are the Lead Integration Technician.</p>
+    <p>Complete UHLE, AHLE, and A2GC before the fiscal year ends. Manage budget, labor, parts, morale, and reputation while your team works inside the hangar.</p>
+    <button onclick="startGame()">START MISSION</button>
+  </section>
+
+  <section id="gameScreen" class="hidden">
+
+    <div class="header">
+      <div class="title">
+        <div class="star"></div>
+        <div>
+          <h1>Mission Trail: Aviation Integration</h1>
+          <div class="subtitle">Oregon Trail Style Work Survival Game</div>
+        </div>
+      </div>
+      <div class="monthbox">MONTH <span id="month">1</span> OF 12</div>
+    </div>
+
+    <div class="resourcebar">
+      <div class="resource"><div class="icon">$</div><div><label>Budget</label><b id="budget">$100,000</b></div></div>
+      <div class="resource"><div class="icon">♟</div><div><label>Labor Hours</label><b id="labor">1,000</b></div></div>
+      <div class="resource"><div class="icon">▣</div><div><label>Parts</label><b id="parts">100</b></div></div>
+      <div class="resource"><div class="icon">☺</div><div><label>Morale</label><b id="morale">100</b></div></div>
+      <div class="resource"><div class="icon">★</div><div><label>Reputation</label><b id="reputation">50</b></div></div>
+    </div>
+
+    <div class="mainstage">
+      <div class="hangar-bg"></div>
+      <div class="ceiling"></div>
+      <div class="lights"><div class="light"></div><div class="light"></div><div class="light"></div></div>
+      <div class="wall-lines"></div>
+      <div class="flag"></div>
+      <div class="floor"></div>
+      <div class="yellow-line"></div>
+
+      <div class="current-project">
+        <h2>Current Project</h2>
+        <div class="project-name" id="currentProject">UHLE</div>
+        <div class="small-label">Task:</div>
+        <div id="currentTask">Install SLED<br>Wiring Harness</div>
+        <div class="small-label">Progress:</div>
+        <div class="big-num" id="currentProgress">0%</div>
+        <div class="bar"><div class="fill" id="currentFill"></div></div>
+        <div class="small-label">Est. Time Remaining:</div>
+        <div id="timeRemaining">12 months</div>
+      </div>
+
+      <div class="quick">
+        <h2>Quick Actions</h2>
+        <button onclick="workMission('uhle')">WORK ON UHLE</button>
+        <button onclick="workMission('ahle')">WORK ON AHLE</button>
+        <button onclick="workMission('a2gc')">WORK ON A2GC</button>
+        <button class="blue" onclick="inventory()">CHECK SUPPLY</button>
+        <button class="blue" onclick="teamMeeting()">TEAM MEETING</button>
+      </div>
+
+      <div class="motto">MISSION FIRST<br>PEOPLE ALWAYS</div>
+
+      <div class="heli">
+        <div class="rotor"></div>
+        <div class="tailrotor"></div>
+        <div class="tailfin"></div>
+        <div class="tail"></div>
+        <div class="engine"></div>
+        <div class="engine engine2"></div>
+        <div class="body"></div>
+        <div class="nose"></div>
+        <div class="window w1"></div>
+        <div class="window w2"></div>
+        <div class="window w3"></div>
+        <div class="window w4"></div>
+        <div class="doorline"></div>
+        <div class="landing"></div>
+        <div class="wheel wh1"></div>
+        <div class="wheel wh2"></div>
+        <div class="cable c1"></div>
+        <div class="cable c2"></div>
+      </div>
+
+      <div class="workcart"></div>
+      <div class="worktable"></div>
+      <div class="crates"></div>
+      <div class="toolbox"></div>
+
+      <div class="technician t1"><div class="person"><div class="cap"></div><div class="head"></div><div class="torso"></div><div class="arm left"></div><div class="arm right"></div><div class="leg left"></div><div class="leg right"></div><div class="boot left"></div><div class="boot right"></div></div></div>
+      <div class="technician t2"><div class="person"><div class="cap"></div><div class="head"></div><div class="torso"></div><div class="arm left"></div><div class="arm right"></div><div class="leg left"></div><div class="leg right"></div><div class="boot left"></div><div class="boot right"></div></div></div>
+      <div class="technician t3"><div class="person"><div class="cap"></div><div class="head"></div><div class="torso"></div><div class="arm left"></div><div class="arm right"></div><div class="leg left"></div><div class="leg right"></div><div class="boot left"></div><div class="boot right"></div></div></div>
+    </div>
+
+    <div class="lower">
+      <div class="panel">
+        <h2>Your Team</h2>
+        <div class="member"><div class="portrait"></div><div><div class="member-name">DION</div><div class="member-role">Electrical Tech SME</div><div class="member-desc">Finds wiring and connector problems.</div></div><div class="morale"><span>MORALE</span>100</div></div>
+        <div class="member"><div class="portrait"></div><div><div class="member-name">DAN</div><div class="member-role">Electrical Eng SME</div><div class="member-desc">Resolves engineering conflicts.</div></div><div class="morale"><span>MORALE</span>100</div></div>
+        <div class="member"><div class="portrait"></div><div><div class="member-name">JACOB</div><div class="member-role">Designer Lead</div><div class="member-desc">Fixes drawing and design issues.</div></div><div class="morale"><span>MORALE</span>100</div></div>
+        <div class="member"><div class="portrait"></div><div><div class="member-name">GEORGE</div><div class="member-role">Team Lead</div><div class="member-desc">Restores morale and focus.</div></div><div class="morale"><span>MORALE</span>100</div></div>
+        <div class="member"><div class="portrait cap"></div><div><div class="member-name">JUSTIN</div><div class="member-role">Supply Specialist</div><div class="member-desc">Orders parts and finds hard-to-find items.</div></div><div class="morale"><span>MORALE</span>100</div></div>
+      </div>
+
+      <div class="panel">
+        <h2>Mission Progress</h2>
+        <div class="mission-row"><div class="thumb"></div><div><div class="mission-title uhle">UHLE</div><div class="bar"><div class="fill" id="uhleBar"></div></div><div class="status" id="uhleStatus">STATUS: Not Started</div></div><div class="mission-title uhle" id="uhleText">0%</div></div>
+        <div class="mission-row"><div class="thumb"></div><div><div class="mission-title ahle">AHLE</div><div class="bar"><div class="fill" id="ahleBar"></div></div><div class="status" id="ahleStatus">STATUS: Not Started</div></div><div class="mission-title ahle" id="ahleText">0%</div></div>
+        <div class="mission-row"><div class="thumb"></div><div><div class="mission-title a2gc">A2GC</div><div class="bar"><div class="fill" id="a2gcBar"></div></div><div class="status" id="a2gcStatus">STATUS: Early Development</div></div><div class="mission-title a2gc" id="a2gcText">0%</div></div>
+      </div>
+
+      <div class="panel">
+        <h2>Mission Log</h2>
+        <div class="log" id="log"></div>
+      </div>
+    </div>
+
+    <div class="event" id="eventPanel">
+      <div class="event-portrait" id="speakerPortrait" data-name="GEORGE"></div>
+      <div>
+        <h2 id="eventTitle">EVENT</h2>
+        <div class="event-text" id="eventText">
+          George stands near the aircraft and looks over the plan.<br>
+          "What do you want the team to focus on first?"
+        </div>
+        <div class="choices" id="eventChoices">
+          <button class="choice" onclick="workMission('uhle')">1. WORK ON UHLE<small>Advance UHLE progress</small></button>
+          <button class="choice blue" onclick="inventory()">2. CHECK SUPPLY<small>Justin searches inventory</small></button>
+          <button class="choice blue" onclick="teamMeeting()">3. TEAM MEETING<small>Improve morale</small></button>
+        </div>
+      </div>
+    </div>
+
+    <div class="tip" id="tip">💡 TIP: Keep an eye on morale. A happy team works better and avoids costly mistakes.</div>
+  </section>
+
+  <section id="endScreen" class="end hidden">
+    <h2 id="endTitle"></h2>
+    <p id="endText"></p>
+    <button onclick="location.reload()">PLAY AGAIN</button>
+  </section>
+
+</div>
+
+<script>
+let game = {
+  month:1,
+  budget:100000,
+  labor:1000,
+  parts:100,
+  morale:100,
+  reputation:50,
+  current:"uhle",
+  progress:{uhle:0,ahle:0,a2gc:0}
+};
+
+const projectNames = {uhle:"UHLE",ahle:"AHLE",a2gc:"A2GC"};
+const tasks = {
+  uhle:"Install SLED<br>Wiring Harness",
+  ahle:"Launcher Electrical<br>Integration",
+  a2gc:"Aircraft Ground<br>Control Install"
+};
+
+function startGame(){
+  document.getElementById("startScreen").classList.add("hidden");
+  document.getElementById("gameScreen").classList.remove("hidden");
+  log("Month 1 begins.\n• Fiscal year started.\n• Aircraft are in the hangar.\n• Leadership is watching.");
+  updateUI();
+}
+
+function money(n){return "$"+n.toLocaleString();}
+function num(n){return n.toLocaleString();}
+
+function updateUI(){
+  document.getElementById("month").textContent = game.month;
+  document.getElementById("budget").textContent = money(game.budget);
+  document.getElementById("labor").textContent = num(game.labor);
+  document.getElementById("parts").textContent = game.parts;
+  document.getElementById("morale").textContent = game.morale;
+  document.getElementById("reputation").textContent = game.reputation;
+
+  updateProject("uhle");
+  updateProject("ahle");
+  updateProject("a2gc");
+
+  let c = game.current;
+  document.getElementById("currentProject").textContent = projectNames[c];
+  document.getElementById("currentTask").innerHTML = tasks[c];
+  document.getElementById("currentProgress").textContent = game.progress[c]+"%";
+  document.getElementById("currentFill").style.width = game.progress[c]+"%";
+  document.getElementById("timeRemaining").textContent = Math.max(1,13-game.month)+" months";
+
+  checkEnd();
+}
+
+function updateProject(p){
+  let val = game.progress[p];
+  document.getElementById(p+"Text").textContent = val+"%";
+  document.getElementById(p+"Bar").style.width = val+"%";
+  let status = "STATUS: Not Started";
+  if(val>0 && val<40) status = "STATUS: Early Development";
+  if(val>=40 && val<80) status = "STATUS: In Progress";
+  if(val>=80 && val<100) status = "STATUS: Final Testing";
+  if(val>=100) status = "STATUS: Complete";
+  document.getElementById(p+"Status").textContent = status;
+}
+
+function log(msg){
+  const box=document.getElementById("log");
+  box.textContent = msg + "\n\n--------------------------\n\n" + box.textContent;
+}
+
+function setEvent(name,title,text,choices){
+  document.getElementById("speakerPortrait").dataset.name = name.toUpperCase();
+  document.getElementById("eventTitle").textContent = title;
+  document.getElementById("eventText").innerHTML = text;
+  const wrap=document.getElementById("eventChoices");
+  wrap.innerHTML="";
+  choices.forEach((c,i)=>{
+    const btn=document.createElement("button");
+    btn.className="choice "+(i>0?"blue":"");
+    btn.innerHTML=c.text;
+    btn.onclick=c.action;
+    wrap.appendChild(btn);
+  });
+}
+
+function workMission(p){
+  game.current=p;
+  const name=projectNames[p];
+  const gain=rand(10,18);
+  const labor=rand(48,76);
+  const parts=rand(7,14);
+  const cost=rand(3500,7600);
+  const morale=rand(3,7);
+
+  game.progress[p]=Math.min(100,game.progress[p]+gain);
+  game.labor-=labor;
+  game.parts-=parts;
+  game.budget-=cost;
+  game.morale-=morale;
+
+  log("You worked on "+name+".\n• Progress +"+gain+"%\n• Labor -"+labor+"\n• Parts -"+parts+"\n• Budget -"+money(cost)+"\n• Morale -"+morale);
+
+  updateUI();
+
+  if(Math.random()<.8){ triggerEvent(); }
+  else{
+    setEvent("GEORGE","MONTH COMPLETE",
+      "The team finishes the month without a major issue.<br><br>George says, \"Good work. Prepare for next month.\"",
+      [{text:"1. CONTINUE<small>Move to next month</small>",action:nextMonth}]
+    );
+  }
+}
+
+function inventory(){
+  game.current=game.current||"uhle";
+  const found=rand(15,30);
+  game.parts+=found;
+  game.labor-=18;
+  game.budget-=1800;
+  game.reputation+=2;
+  log("Justin checked inventory.\n• Found additional parts.\n• Parts +"+found+"\n• Labor -18\n• Reputation +2");
+  updateUI();
+  setEvent("JUSTIN","SUPPLY UPDATE",
+    "Justin walks in holding a small parts box.<br><br>\"I found parts that were not showing correctly in inventory.\"",
+    [{text:"1. CONTINUE<small>Move to next month</small>",action:nextMonth}]
+  );
+}
+
+function teamMeeting(){
+  game.morale=Math.min(100,game.morale+18);
+  game.labor-=12;
+  game.reputation+=2;
+  log("George held a team meeting.\n• Morale +18\n• Labor -12\n• Reputation +2");
+  updateUI();
+  setEvent("GEORGE","TEAM MEETING",
+    "George gathers everyone beside the aircraft.<br><br>\"Slow down, communicate, and do it right the first time.\"",
+    [{text:"1. CONTINUE<small>Move to next month</small>",action:nextMonth}]
+  );
+}
+
+const events=[
+  {
+    speaker:"JUSTIN",
+    title:"CONNECTOR SHORTAGE",
+    text:"Justin walks in holding a parts request.<br><br>\"The D38999 connector is backordered, but I may know where to find one.\"<br><br>What do you want to do?",
+    choices:[
+      {text:"1. ASK JUSTIN TO FIND IT<small>High chance of parts +20</small>",action:()=>{ if(Math.random()<.85){game.parts+=20;game.reputation+=5;log("Justin found the connector.\n• Parts +20\n• Reputation +5");}else{game.month+=1;game.reputation-=5;log("Justin could not find the connector in time.\n• Lost 1 month\n• Reputation -5");} finishChoice(); }},
+      {text:"2. WAIT FOR SHIPMENT<small>Lose 1 month, morale -8</small>",action:()=>{game.month+=1;game.morale-=8;log("You waited for official shipment.\n• Lost 1 month\n• Morale -8");finishChoice();}},
+      {text:"3. BORROW FROM ANOTHER PROJECT<small>Parts +10, reputation -8</small>",action:()=>{game.parts+=10;game.reputation-=8;log("Borrowed from another project.\n• Parts +10\n• Reputation -8");finishChoice();}}
+    ]
+  },
+  {
+    speaker:"DION",
+    title:"FAILED CONTINUITY TEST",
+    text:"Dion calls you over to the aircraft.<br><br>\"Continuity failed. I think the issue is in the connector pinout.\"<br><br>What is your call?",
+    choices:[
+      {text:"1. LET DION TROUBLESHOOT<small>Labor -25, reputation +7</small>",action:()=>{game.labor-=25;game.reputation+=7;log("Dion found the wiring issue fast.\n• Labor -25\n• Reputation +7");finishChoice();}},
+      {text:"2. REWIRE ASSEMBLY<small>Labor -80, parts -12</small>",action:()=>{game.labor-=80;game.parts-=12;log("Assembly rewired safely.\n• Labor -80\n• Parts -12");finishChoice();}},
+      {text:"3. PUSH FORWARD<small>Risk QA hit</small>",action:()=>{game.reputation-=18;game.morale-=10;log("QA caught the issue.\n• Reputation -18\n• Morale -10");finishChoice();}}
+    ]
+  },
+  {
+    speaker:"DAN",
+    title:"ENGINEERING QUESTION",
+    text:"Dan reviews the aircraft configuration.<br><br>\"The drawing intent does not match what we are seeing on the aircraft.\"",
+    choices:[
+      {text:"1. CONSULT DAN<small>Labor -30, reputation +5</small>",action:()=>{game.labor-=30;game.reputation+=5;log("Dan clarified engineering intent.\n• Labor -30\n• Reputation +5");finishChoice();}},
+      {text:"2. REQUEST REDLINE<small>Budget -2000, reputation +8</small>",action:()=>{game.budget-=2000;game.reputation+=8;log("Engineering redline approved.\n• Budget -$2,000\n• Reputation +8");finishChoice();}},
+      {text:"3. KEEP WORKING<small>Reputation -15</small>",action:()=>{game.reputation-=15;log("Continuing without clarification caused rework.\n• Reputation -15");finishChoice();}}
+    ]
+  },
+  {
+    speaker:"JACOB",
+    title:"DESIGN PACKAGE ISSUE",
+    text:"Jacob arrives with a marked-up drawing package.<br><br>\"The design package needs to be cleaned up before this becomes a bigger problem.\"",
+    choices:[
+      {text:"1. DESIGN REVIEW<small>Labor -35, reputation +8</small>",action:()=>{game.labor-=35;game.reputation+=8;log("Jacob corrected the design package.\n• Labor -35\n• Reputation +8");finishChoice();}},
+      {text:"2. QUICK FIELD NOTE<small>Labor -15, reputation +2</small>",action:()=>{game.labor-=15;game.reputation+=2;log("Field note captured.\n• Labor -15\n• Reputation +2");finishChoice();}},
+      {text:"3. IGNORE IT<small>Reputation -20</small>",action:()=>{game.reputation-=20;log("Design issue became rework.\n• Reputation -20");finishChoice();}}
+    ]
+  },
+  {
+    speaker:"GEORGE",
+    title:"TEAM BURNOUT",
+    text:"George stops by the workbench.<br><br>\"The team is getting tired. We need to decide how to handle the schedule pressure.\"",
+    choices:[
+      {text:"1. TEAM RESET<small>Morale +20, labor -10</small>",action:()=>{game.morale=Math.min(100,game.morale+20);game.labor-=10;log("George reset team priorities.\n• Morale +20\n• Labor -10");finishChoice();}},
+      {text:"2. PUSH OVERTIME<small>Labor +60, morale -22</small>",action:()=>{game.labor+=60;game.morale-=22;game.reputation+=3;log("Overtime added hours but hurt morale.\n• Labor +60\n• Morale -22\n• Reputation +3");finishChoice();}},
+      {text:"3. RECOVERY DAY<small>Morale +25, lose 1 month</small>",action:()=>{game.morale=Math.min(100,game.morale+25);game.month+=1;log("Team recovered, but schedule slipped.\n• Morale +25\n• Lost 1 month");finishChoice();}}
+    ]
+  }
+];
+
+function triggerEvent(){
+  const e=events[rand(0,events.length-1)];
+  setEvent(e.speaker,e.title,e.text,e.choices);
+}
+
+function finishChoice(){
+  clamp();
+  updateUI();
+  setEvent("GEORGE","DECISION COMPLETE",
+    "The team adjusts based on your decision.<br><br>Prepare for the next month.",
+    [{text:"1. CONTINUE<small>Move to next month</small>",action:nextMonth}]
+  );
+}
+
+function nextMonth(){
+  clamp();
+  if(game.month>=12){
+    game.month=12;
+    updateUI();
+    checkEnd(true);
+    return;
+  }
+  game.month++;
+  log("Month "+game.month+" begins.");
+  updateUI();
+  setEvent("GEORGE","NEW MONTH",
+    "The hangar is active again. The aircraft is waiting.<br><br>Choose the next project focus.",
+    [
+      {text:"1. WORK ON UHLE<small>Advance UHLE</small>",action:()=>workMission("uhle")},
+      {text:"2. WORK ON AHLE<small>Advance AHLE</small>",action:()=>workMission("ahle")},
+      {text:"3. WORK ON A2GC<small>Advance A2GC</small>",action:()=>workMission("a2gc")}
+    ]
+  );
+}
+
+function checkEnd(force=false){
+  const won=game.progress.uhle>=100&&game.progress.ahle>=100&&game.progress.a2gc>=100;
+  if(won) endGame("MISSION COMPLETE","UHLE, AHLE, and A2GC were delivered before the fiscal year ended.");
+  else if(game.budget<=0) endGame("MISSION FAILED","Budget hit zero. The program ran out of money.");
+  else if(game.labor<=0) endGame("MISSION FAILED","Labor hours hit zero. The team ran out of time.");
+  else if(game.parts<=0) endGame("MISSION FAILED","Parts hit zero. You were defeated by missing hardware.");
+  else if(game.morale<=0) endGame("MISSION FAILED","Morale hit zero. Burnout took over.");
+  else if(game.reputation<=0) endGame("MISSION FAILED","Reputation hit zero. Leadership lost confidence.");
+  else if(force) endGame("FISCAL YEAR ENDED","Time ran out before all aircraft projects were completed.");
+}
+
+function endGame(title,text){
+  document.getElementById("gameScreen").classList.add("hidden");
+  document.getElementById("endScreen").classList.remove("hidden");
+  document.getElementById("endTitle").textContent=title;
+  document.getElementById("endText").textContent=text;
+}
+
+function clamp(){
+  game.budget=Math.max(0,game.budget);
+  game.labor=Math.max(0,game.labor);
+  game.parts=Math.max(0,game.parts);
+  game.morale=Math.max(0,Math.min(100,game.morale));
+  game.reputation=Math.max(0,Math.min(100,game.reputation));
+  Object.keys(game.progress).forEach(k=>game.progress[k]=Math.max(0,Math.min(100,game.progress[k])));
+}
+
+function rand(min,max){
+  return Math.floor(Math.random()*(max-min+1))+min;
+}
+</script>
+
+</body>
+</html>
